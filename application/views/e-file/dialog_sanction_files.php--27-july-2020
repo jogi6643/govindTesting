@@ -1,0 +1,442 @@
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+if(isset($_GET['jd']) && isset($_GET['id']) && $_GET['data']=='edit_sanction_file'){
+?>
+<?php $session = $this->session->userdata('username');?>
+<?php $user = $this->Xin_model->read_user_info($session['user_id']);?>
+<?php $all_file_type = $this->Templates_model->all_file_type(); ?>
+<?php $all_reporting_officer = $this->Employees_model->all_employee_name(); ?>
+<?php $report = $this->Xin_model->reporting_officer($session['user_id']);?>
+<?php $all_employees = $this->Xin_model->all_employees(); ?>
+		
+
+<div class="modal-header">
+  <button type="button" class="close" data-dismiss="modal" aria-label="Close"> <span aria-hidden="true">×</span> </button>
+  <h4 class="modal-title" id="edit-modal-data">Edit File</h4>
+</div>
+<form class="m-b-1" action="<?php echo site_url("sanction_files/update").'/'.$id; ?>" method="post" name="edit_sanction_file" id="edit_sanction_file">
+<?php
+	$csrf=array(
+        'name' => $this->security->get_csrf_token_name(),
+        'hash' => $this->security->get_csrf_hash()
+		);
+?>
+   <input type="hidden" name="<?=$csrf['name'];?>" value="<?=$csrf['hash'];?>"/>
+  <input type="hidden" name="_method" value="EDIT">
+  <input type="hidden" name="_token" value="<?php echo "ID:". $id;?>">
+  <input type="hidden" name="employee_id" value="<?php echo $employee_id;?>">
+    <input type="hidden" name="counter" value="<?php echo $counter + 1;?>">
+
+
+  <div class="modal-body">
+        <div class="row">
+		       <div class="col-md-6">
+				<div class="form-group">
+				 <label for="file_name">File Name</label>
+              <input class="form-control" placeholder="File Name" name="file_name" type="text" value="<?php echo $file_name;?>">
+            </div>
+          </div>
+		  
+          <div class="col-md-6">
+            <div class="form-group">
+              <label for="file_type">File Type</label>
+              <input class="form-control" placeholder="File Type" name="file_type" type="text" value="<?php echo $file_type;?>" readonly> 
+            <!--<select id="select2" class="form-control" name="file_type" data-plugin="select_hrm" data-placeholder="<?php echo $this->lang->line('xin_file_type');?>">
+                        <option value="">Choose File Type</option>						  
+                        <?php foreach($all_file_type as $row){?>
+                          <option value="<?php echo $row->file_type; ?>"><?php echo $row->file_type; ?></option>
+                        <?php } ?>
+                        </select>-->
+			</div>
+          </div>
+        </div>
+
+		<div class="row">
+		<div class="col-md-12">
+        <div class="form-group">
+          <label for="subject_line">Subject Line</label>
+            <input class="form-control" placeholder="Subject Line" name="subject_line" type="text" value="<?php echo $subject_line;?>">
+        </div>
+      </div>
+      </div>
+		
+		<div class="row">
+		<div class="col-md-8">
+        <div class="form-group">
+          <label for="description">Description</label><?php $descriptions = $description.'<hr>';?><?php $description = ".";?>
+          <textarea class="form-control textarea" placeholder="Description" name="description" cols="30" rows="10" id="description2"><?php echo $descriptions;?><?php echo $description;?></textarea>
+        </div>
+      </div>
+      </div>
+	  
+	   <div class="row">
+		       <div class="col-md-3">
+				<div class="form-group">
+				 <label for="status">Status</label>
+              <input class="form-control" placeholder="Status" name="status" type="text" value="<?php echo $status;?>" readonly> 
+			  <select id="select2" class="form-control" name="status" data-plugin="select_hrm" data-placeholder="<?php echo $this->lang->line('left_file_status');?>">
+                        <option value="">Choose File Status</option>						  
+                        <option value="In process">In process</option>						  
+                        <option value="Approved">Approved</option>						  
+                        <option value="On Hold">On Hold</option>						  
+                        <option value="Rejected">Rejected</option>						  
+                        </select>
+            </div>
+          </div>
+		  
+		  	<div class="col-md-3">
+				<div class="form-group">
+				<label for="priority">Priority</label>
+              <input class="form-control" placeholder="Priority" name="priority" type="text" value="<?php echo $priority;?>" readonly> 
+			  <select id="select2" class="form-control" name="priority" data-plugin="select_hrm" data-placeholder="<?php echo $this->lang->line('left_priority');?>">
+                        <option value="Normal">Normal</option>						  
+                        <option value="Urgent">Urgent</option>						  
+                        <option value="Most urgent">Most urgent</option>						  
+                </select>
+            </div>
+          </div>
+<?php	
+$reporting_officer = $this->Xin_model->read_user_info($reporting_officer);
+$reporting_officer_full_name = htmlentities($reporting_officer[0]->first_name). ' '.htmlentities($reporting_officer[0]->last_name);
+?>		  
+          <div class="col-md-6">
+            <div class="form-group">
+              <label for="reporting_officer">Sanction Officer / Reporting Officer</label>
+              <input class="form-control" readonly="readonly" style="border:0" name="reporting_officer" type="text" value="<?php echo $reporting_officer_full_name;?>">
+           <select name="reporting_officer" id="select2-demo-6" class="form-control" data-plugin="select_hrm" data-placeholder="Choose Sanction Officer / Reporting Officer">
+                      <option value="">Choose Sanction Officer / Reporting Officer</option>
+                      <?php foreach($all_employees as $employee) {?>
+                      <option value="<?php echo $employee->user_id;?>"> <?php echo $employee->first_name.' '.$employee->last_name;?></option>
+                      <?php } ?>
+                    </select>
+			</div>
+          </div>
+        </div>
+		
+		
+<div class="row">
+			<div class="col-md-3">
+				<div class="form-group">
+				<label for="attachment_file">Uploaded Reference File 1</label><br>
+				<?php if($attachment_file !='' && $attachment_file != null && $attachment_file!='no file') {?>
+				<input type="hidden" name="attachment_file" value="<?php echo $attachment_file;?>">
+				<a href="<?php echo base_url().'uploads/files/'.$attachment_file;?>" target="_blank">		
+				<span class="btn btn-primary btn-file"> 
+				Download file
+				<span></a>
+				<?php }else{ ?>
+				<span><input type="file" name="attachment_file"></span>
+				<?php }?>	
+				</div></div>
+				
+			<div class="col-md-3">
+				<div class="form-group">
+				<label for="attachment_file1">Uploaded Reference File 2</label><br>		
+				<?php if($attachment_file1 !='' && $attachment_file1 != null && $attachment_file1 !='no file') {?>
+				<input type="hidden" name="attachment_file1 value="<?php echo $attachment_file1;?>">
+				<a href="<?php echo base_url().'uploads/files/'.$attachment_file1;?>" target="_blank">		
+				<span class="btn btn-primary btn-file"> 
+				Download file
+				<span></a>
+				<?php }else{ ?>
+				<span><input type="file" name="attachment_file1"></span>
+				<?php }?>	
+				</div></div>
+			
+			<div class="col-md-3">
+				<div class="form-group">
+				<label for="attachment_file2">Uploaded Reference File 3</label><br>
+				<?php if($attachment_file2 !='' && $attachment_file2 != null && $attachment_file2 !='no file') {?>
+				<input type="hidden" name="attachment_file2" value="<?php echo $attachment_file2;?>">
+				<a href="<?php echo base_url().'uploads/files/'.$attachment_file2;?>" target="_blank">		
+				<span class="btn btn-primary btn-file"> 
+				Download file
+				<span></a>
+				<?php }else{ ?>
+				<span><input type="file" name="attachment_file2"></span>
+				<?php }?>	
+				</div></div>	
+
+			<div class="col-md-3">
+				<div class="form-group">
+				<label for="attachment_file3">Uploaded Reference File 4</label><br>	
+				<?php if($attachment_file3 !='' && $attachment_file3 != null && $attachment_file3!='no file') {?>
+				<input type="hidden" name="attachment_file3" value="<?php echo $attachment_file3;?>">
+				<a href="<?php echo base_url().'uploads/files/'.$attachment_file3;?>" target="_blank">		
+				<span class="btn btn-primary btn-file"> 
+				Download file
+				<span></a>
+				<?php }else{ ?>
+				<span><input type="file" name="attachment_file3"></span>
+				<?php }?>	
+				</div></div>
+	</div>
+	
+		<div class="row">
+		<div class="col-md-12">
+        <div class="form-group">
+          <label for="remark">Remark</label>
+          <textarea class="form-control textarea" placeholder="Remark" name="remark" cols="30" rows="10" id="remark2"><?php echo $remark;?></textarea>
+        </div>
+      </div>
+      </div>
+	  
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+    <button type="submit" class="btn btn-primary">Update</button>
+  </div>
+</form>
+<link rel="stylesheet" href="<?php echo base_url();?>skin/vendor/select2/dist/css/select2.min.css">
+<script type="text/javascript" src="<?php echo base_url();?>skin/vendor/select2/dist/js/select2.min.js"></script>
+<link rel="stylesheet" href="<?php echo base_url();?>skin/vendor/ion.rangeSlider/css/ion.rangeSlider.css">
+<link rel="stylesheet" href="<?php echo base_url();?>skin/vendor/ion.rangeSlider/css/ion.rangeSlider.skinFlat.css">
+<script type="text/javascript" src="<?php echo base_url();?>skin/vendor/ion.rangeSlider/js/ion-rangeSlider/ion.rangeSlider.min.js"></script> 
+<script type="text/javascript">
+ $(document).ready(function(){
+					
+		// On page load: datatable
+		var xin_table = $('#xin_table').dataTable({
+        "bDestroy": true,
+		"ajax": {
+            url : "<?php echo site_url("sanction_files/sanction_file_list") ?>",
+            type : 'GET'
+        },
+		"fnDrawCallback": function(settings){
+		$('[data-toggle="tooltip"]').tooltip();          
+		}
+    	});
+		
+		$('[data-plugin="select_hrm"]').select2($(this).attr('data-options'));
+		$('[data-plugin="select_hrm"]').select2({ width:'100%' });	 
+		
+		$('#description2').summernote({
+		  height: 136,
+		  minHeight: null,
+		  maxHeight: null,
+		  focus: false
+		});
+		$('#remark2').summernote({
+		  height: 136,
+		  minHeight: null,
+		  maxHeight: null,
+		  focus: false
+		});
+		$('.note-children-container').hide();
+		$('.d_date').datepicker({
+		changeMonth: true,
+		changeYear: true,
+		dateFormat:'yy-mm-dd',
+		yearRange: '1900:' + (new Date().getFullYear() + 10),
+		beforeShow: function(input) {
+			$(input).datepicker("widget").show();
+		}
+		});
+
+		/* Edit data */
+		// $("#edit_sanction_file").submit(function(e){
+		// e.preventDefault();
+			// var obj = $(this), action = obj.attr('name');
+			// $('.save').prop('disabled', true);
+			// //var template = $("#description2").summernote('code');
+			// //var template = $("#remark2").summernote('code');
+			// var m = $("#description2")["code"]();
+			// var n = $("#remark2")["code"]();
+			// $.ajax({
+				// type: "POST",
+				// url: e.target.action,
+				// data: obj.serialize()+"&is_ajax=1&edit_type=edit_sanction_file&form="+ action + m + n,
+				// cache: false,
+				// success: function (JSON) {
+					// if (JSON.error != '') {
+						// toastr.error(JSON.error);
+						// $('.save').prop('disabled', false);
+					// } else {
+						// xin_table.api().ajax.reload(function(){ 
+							// toastr.success(JSON.result);
+						// }, true);
+						// $('.edit-modal-data').modal('toggle');
+						// $('.save').prop('disabled', false);
+					// }
+				// }
+			// });
+		// });
+	// });	
+		$("#edit_sanction_file").submit(function(e){
+		var fd = new FormData(this);
+		var obj = $(this), action = obj.attr('name');
+		var description = $("#description2").code();
+		var n = $("#remark2")["code"]();
+		fd.append("is_ajax", 1);
+		fd.append("edit_type", 'edit_sanction_file');
+		fd.append("description", description);
+		fd.append("remark", n);
+		fd.append("form", action);
+		e.preventDefault();
+		$('.icon-spinner3').show();
+		$('.save').prop('disabled', true);
+		$.ajax({
+			url: e.target.action,
+			type: "POST",
+			data:  fd,
+			contentType: false,
+			cache: false,
+			processData:false,
+			success: function(JSON)
+			{
+				if (JSON.error != '') {
+					toastr.error(JSON.error);
+						$('.save').prop('disabled', false);
+						$('.icon-spinner3').hide();
+				} else {
+					xin_table.api().ajax.reload(function(){ 
+						toastr.success(JSON.result);
+					}, true);
+					$('.icon-spinner3').hide();
+					$('.edit-modal-data').modal('toggle');
+					$('.save').prop('disabled', false);
+				}
+			},
+			error: function() 
+			{
+				toastr.error(JSON.error);
+				$('.icon-spinner3').hide();
+				$('.save').prop('disabled', false);
+			} 	        
+	   });
+	});
+	});	
+  </script>
+<?php } else if(isset($_GET['jd']) && isset($_GET['id']) && $_GET['data']=='view_sanction_file'){
+?>
+
+<div class="modal-header">
+  <button type="button" class="close" data-dismiss="modal" aria-label="Close"> <span aria-hidden="true">×</span> </button>
+  <h4 class="modal-title" id="edit-modal-data">View File</h4>
+</div>
+<form class="m-b-1">
+  <div class="modal-body">
+        <div class="row">
+		    <div class="col-md-6">
+				<div class="form-group">
+              <label for="file_type">File Name</label>
+              <input class="form-control" readonly="readonly" style="border:0" name="file_name" type="text" value="<?php echo $file_name;?>">
+            </div>
+          </div>
+		  
+          <div class="col-md-6">
+            <div class="form-group">
+              <label for="file_type">File Type</label>
+              <input class="form-control" readonly="readonly" style="border:0" name="file_type" type="text" value="<?php echo $file_type;?>">
+            </div>
+          </div>
+        </div>
+				
+		<div class="row">
+         <div class="col-md-12">
+			<div class="form-group">
+			<label for="subject_line">Subject Line</label><br />
+              <input class="form-control" readonly="readonly" style="border:0" name="subject_line" type="text" value="<?php echo $subject_line;?>">
+			</div>
+          </div>
+        </div>
+		
+		<div class="row">
+         <div class="col-md-8">
+        <div class="form-group">
+          <label for="description">Description</label><br />
+          <?php echo html_entity_decode($description);?>
+		</div>
+          </div>
+        </div>
+	
+		   <div class="row">
+		    <div class="col-md-6">
+				<div class="form-group">
+              <label for="status">Status</label>
+              <input class="form-control" readonly="readonly" style="border:0" name="status" type="text" value="<?php echo $status;?>">
+            </div>
+          </div>
+		  
+		  <div class="col-md-3">
+				<div class="form-group">
+              <label for="priority">Priority</label>
+              <input class="form-control" readonly="readonly" style="border:0" name="priority" type="text" value="<?php echo $priority;?>">
+            </div>
+          </div>
+		
+<?php	
+$reporting_officer = $this->Xin_model->read_user_info($reporting_officer);
+$reporting_officer_full_name = htmlentities($reporting_officer[0]->first_name). ' '.htmlentities($reporting_officer[0]->last_name);
+?>			
+          <div class="col-md-6">
+            <div class="form-group">
+              <label for="reporting_officer">Sanction Officer / Reporting Officer</label>
+              <input class="form-control" readonly="readonly" style="border:0" name="reporting_officer" type="text" value="<?php echo $reporting_officer_full_name;?>">
+            </div>
+          </div>
+        </div>
+		
+			<div class="row">
+			<div class="col-md-3">
+				<div class="form-group">
+				<label for="attachment_file">Uploaded Reference File 1</label><br>
+				<?php if($attachment_file !='' && $attachment_file != null && $attachment_file!='no file') {?>
+				<a href="<?php echo base_url().'uploads/files/'.$attachment_file;?>" target="_blank">		
+				<span class="btn btn-primary btn-file"> 
+				Download file
+				<span></a>
+				<?php }else{ echo '<span class="btn btn-primary btn-file"> '."No file exists".'<span>';}?>	
+				</div></div>
+				
+			<div class="col-md-3">
+				<div class="form-group">
+				<label for="attachment_file1">Uploaded Reference File 2</label><br>				
+				<?php if($attachment_file1 !='' && $attachment_file1 != null && $attachment_file1 !='no file') {?>
+				<a href="<?php echo base_url().'uploads/files/'.$attachment_file1;?>" target="_blank">		
+				<span class="btn btn-primary btn-file"> 
+				Download file
+				<span></a>	
+				<?php }else{ echo '<span class="btn btn-primary btn-file"> '."No file exists".'<span>';}?>	
+				</div></div>
+			
+			<div class="col-md-3">
+				<div class="form-group">
+				<label for="attachment_file2">Uploaded Reference File 3</label><br>				
+				<?php if($attachment_file2 !='' && $attachment_file2 != null && $attachment_file2 !='no file') {?>
+				<a href="<?php echo base_url().'uploads/files/'.$attachment_file2;?>" target="_blank">		
+				<span class="btn btn-primary btn-file"> 
+				Download file
+				<span></a>	
+				<?php }else{ echo '<span class="btn btn-primary btn-file"> '."No file exists".'<span>';}?>	
+				</div></div>		
+
+			<div class="col-md-3">
+				<div class="form-group">
+				<label for="attachment_file3">Uploaded Reference File 4</label><br>			
+				<?php if($attachment_file3 !='' && $attachment_file3 != null && $attachment_file3!='no file') {?>
+				<a href="<?php echo base_url().'uploads/files/'.$attachment_file3;?>" target="_blank">		
+				<span class="btn btn-primary btn-file"> 
+				Download file
+				<span></a>				
+				<?php }else{ echo '<span class="btn btn-primary btn-file"> '."No file exists".'<span>';}?>	
+			</div>
+		</div>
+	</div>
+	
+		<div class="row">
+         <div class="col-md-12">
+			<div class="form-group">
+			<label for="remark">Remark</label><br />
+			<?php echo html_entity_decode($remark);?>
+			</div>
+          </div>
+        </div>
+
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+  </div>
+</form>
+<?php }
+?>
